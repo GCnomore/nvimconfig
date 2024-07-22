@@ -135,4 +135,11 @@ return {
       end)
     end,
   },
+  {
+    "luckasRanarison/tailwind-tools.nvim",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    init = function()
+      require("tailwind-tools").setup({})
+    end,
+  },
 }
