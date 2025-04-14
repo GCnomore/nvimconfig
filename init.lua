@@ -5,8 +5,8 @@ vim.g.mapleader = " "
 local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
 
 if not vim.loop.fs_stat(lazypath) then
-  local repo = "https://github.com/folke/lazy.nvim.git"
-  vim.fn.system { "git", "clone", "--filter=blob:none", repo, "--branch=stable", lazypath }
+   local repo = "https://github.com/folke/lazy.nvim.git"
+   vim.fn.system { "git", "clone", "--filter=blob:none", repo, "--branch=stable", lazypath }
 end
 
 vim.opt.rtp:prepend(lazypath)
@@ -15,30 +15,37 @@ local lazy_config = require "configs.lazy"
 
 -- load plugins
 require("lazy").setup({
-  {
-    "NvChad/NvChad",
-    lazy = false,
-    branch = "v2.5",
-    import = "nvchad.plugins",
-    config = function()
-      require "options"
-    end,
-  },
+   {
+      "NvChad/NvChad",
+      lazy = false,
+      branch = "v2.5",
+      import = "nvchad.plugins",
+      config = function()
+         require "options"
+      end,
+   },
 
-  { import = "plugins" },
+   { import = "plugins" },
 }, lazy_config)
 
 -- load theme
 dofile(vim.g.base46_cache .. "defaults")
 dofile(vim.g.base46_cache .. "statusline")
 
--- vim.opt.clipboard = "unnamedplus"
+-- Add this part to your init.lua or in a separate Lua file that you source in your init.lua
+local get_option = vim.filetype.get_option
+vim.filetype.get_option = function(filetype, option)
+   return option == "commentstring" and require("ts_context_commentstring.internal").calculate_commentstring()
+       or get_option(filetype, option)
+end
+
+vim.opt.clipboard = "unnamedplus"
 -- Highlight the current line
-vim.cmd([[highlight CursorLine cterm=NONE ctermbg=grey ctermfg=white guibg=#232323 guifg=None]])
--- Transparent bg
--- vim.cmd [[hi Normal guibg=NONE ctermbg=NONE]]
+vim.cmd([[highlight CursorLine cterm=NONE ctermbg=grey ctermfg=white guibg=#343434 guifg=None]])
+vim.api.nvim_set_hl(0, "TelescopeSelection", { bg = "#2e3440", fg = "#ffffff" })
 
 require "nvchad.autocmds"
+
 vim.schedule(function()
-  require "mappings"
+   require "mappings"
 end)
