@@ -1,278 +1,233 @@
 return {
-   {
-      "stevearc/conform.nvim",
-      -- event = 'BufWritePre', -- uncomment for format on save
-      config = function()
-         require "configs.conform"
-      end,
-   },
+  {
+    "stevearc/conform.nvim",
+    opts = require "configs.conform",
+  },
 
-   -- These are some examples, uncomment them if you want to see them work!
-   {
-      "neovim/nvim-lspconfig",
-      config = function()
-         require("nvchad.configs.lspconfig").defaults()
-         require "configs.lspconfig"
-      end,
-   },
-   {
-      "nvim-tree/nvim-tree.lua",
-      opts = {
-         view = {
-            width = 35,
-         },
-         git = {
-            enable = true,
-            ignore = false,
-         },
-      },
-   },
+  {
+    "neovim/nvim-lspconfig",
+    config = function()
+      require "configs.lspconfig"
+    end,
+  },
 
-   {
-      "williamboman/mason.nvim",
-      opts = {
-         ensure_installed = {
-            "lua-language-server",
-            "stylua",
-            "html-lsp",
-            "css-lsp",
-            "prettier",
-         },
-      },
-   },
+  { import = "nvchad.blink.lazyspec" },
 
-   {
-      "nvim-treesitter/nvim-treesitter",
-      opts = {
-         ensure_installed = {
-            "html",
-            "css",
-            "bash",
-            "lua",
-            "json",
-            "javascript",
-            "typescript",
-            "tsx",
-            "yaml",
-            "markdown",
-            "vim",
-            "gitignore",
-            "vue",
-            "go",
-            "gomod",
-            "scss",
-         },
-         auto_install = true,
-      },
-   },
-   { "tpope/vim-fugitive", lazy = false }, -- load a plugin at startup
-   {
-      "windwp/nvim-ts-autotag",
-      init = function()
-         require("nvim-ts-autotag").setup()
-      end,
-   },
-   {
-      "windwp/nvim-autopairs",
-      init = function()
-         require("nvim-autopairs").setup()
-      end,
-   },
-   {
-      "nvimdev/indentmini.nvim",
-      init = function()
-         require("lazy").setup {
-            "nvimdev/indentmini.nvim",
-            event = "BufEnter",
-            config = function()
-               require("indentmini").setup()
-            end,
-         }
-      end,
-   },
+  {
+    "nvim-treesitter/nvim-treesitter",
+    opts = function(_, opts)
+      opts.ensure_installed = {
+        "html",
+        "css",
+        "bash",
+        "lua",
+        "json",
+        "javascript",
+        "typescript",
+        "tsx",
+        "yaml",
+        "markdown",
+        "vim",
+        "gitignore",
+        "vue",
+        "go",
+        "gomod",
+        "scss",
+        "liquid",
+      }
+      opts.auto_install = true
 
-   {
-      "JoosepAlviste/nvim-ts-context-commentstring",
-      config = function()
-         vim.g.skip_ts_context_commentstring_module = true
-         require("ts_context_commentstring").setup {}
-      end,
-   },
-   -- {
-   --    "numToStr/Comment.nvim",
-   --    opts = {
-   --       pre_hook = function(ctx)
-   --          -- Only set this up for filetypes that require context-aware commenting
-   --          if vim.bo.filetype == "typescriptreact" or vim.bo.filetype == "javascriptreact" then
-   --             local commentstring = require("ts_context_commentstring.integrations.comment_nvim").create_pre_hook()
-   --             return commentstring(ctx)
-   --          end
-   --       end,
-   --    },
-   -- },
+      -- highlight 설정 추가
+      opts.highlight = {
+        enable = true,
+        disable = function(lang, buf)
+          local filename = vim.api.nvim_buf_get_name(buf)
+          if filename == "" then
+            return false
+          end
+          local max_filesize = 1000 * 1024 -- 1MB
+          local ok, stats = pcall(vim.loop.fs_stat, filename)
+          if ok and stats and stats.size > max_filesize then
+            return true
+          end
+          if filename:match "%.min%.js$" or filename:match "%.min%.css$" or filename:match "%.min%.html$" then
+            return true
+          end
+          local lines = vim.fn.readfile(filename, "", 100)
+          for _, line in ipairs(lines) do
+            if #line > 500 then
+              return true
+            end
+          end
+        end,
+        additional_vim_regex_highlighting = false,
+      }
+    end,
+  },
 
-   --{
-   --  "jose-elias-alvarez/null-ls.nvim",
-   -- ft = "go",
-   -- opts = function()
-   --  return require "configs.null-ls"
-   --end,
-   --},
-   {
-      "nvimtools/none-ls.nvim",
-      init = function()
-         require("null-ls").setup {}
-      end,
-      opts = function()
-         return require "configs.null-ls"
-      end,
-   },
-   { "nvim-lua/plenary.nvim" },
+  {
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+    end,
+  },
 
-   {
-      "Djancyp/better-comments.nvim",
-      lazy = true,
-      init = function()
-         require("better-comment").Setup {
-            tags = {
-               {
-                  name = "TODO",
-                  fg = "white",
-                  bg = "#0a7aca",
-                  bold = true,
-                  virtual_text = "",
-               },
-               {
-                  name = "FIX",
-                  fg = "white",
-                  bg = "#f44747",
-                  bold = true,
-                  virtual_text = "This is virtual Text from FIX",
-               },
-               {
-                  name = "WARNING",
-                  fg = "#FFA500",
-                  bg = "",
-                  bold = false,
-                  virtual_text = "",
-               },
-               {
-                  name = "!",
-                  fg = "#f44747",
-                  bg = "",
-                  bold = true,
-                  virtual_text = "",
-               },
-            },
-         }
-      end,
-   },
-   {
-      "heavenshell/vim-jsdoc",
-      ft = { "javascript", "javascript.jsx", "typescript", "typescript.tsx" },
-      build = "make install",
-   },
-   { "nvchad/volt", lazy = true },
+  { "tpope/vim-fugitive", lazy = false },
 
-   {
-      "nvchad/minty",
-      cmd = { "Shades", "Huefy" },
-   },
-   {
-      "sindrets/diffview.nvim",
-      lazy = false,
-   },
-   {
-      "NeogitOrg/neogit",
-      dependencies = {
-         "nvim-lua/plenary.nvim", -- required
-         "sindrets/diffview.nvim", -- optional - Diff integration
+  {
+    "windwp/nvim-ts-autotag",
+    config = function()
+      require("nvim-ts-autotag").setup()
+    end,
+  },
 
-         -- Only one of these is needed.
-         "nvim-telescope/telescope.nvim", -- optional
-         "ibhagwan/fzf-lua", -- optional
-         "echasnovski/mini.pick", -- optional
-      },
-      -- config = true,
-      lazy = false,
-      config = function()
-         require("neogit").setup {
-            kind = "floating",
-            floating_window = {
-               border = "rounded", -- Options: "single", "double", "rounded", "solid", "shadow"
-               width = 0.9, -- Adjust width as a proportion of the editor's width
-               height = 0.85, -- Adjust height as a proportion of the editor's height
-            },
-            integrations = {
-               diffview = true,
-            },
-         }
-      end,
-   },
+  {
+    "windwp/nvim-autopairs",
+    config = function()
+      require("nvim-autopairs").setup()
+    end,
+  },
 
-   -- Markdown previewer
-   {
-      "toppair/peek.nvim",
-      event = { "VeryLazy" },
-      build = "deno task --quiet build:fast",
-      config = function()
-         require("peek").setup {
-            app = "browser",
-         }
-         vim.api.nvim_create_user_command("PeekOpen", require("peek").open, {})
-         vim.api.nvim_create_user_command("PeekClose", require("peek").close, {})
-      end,
-   },
+  -- 🛠️ 수정된 부분: indentmini 설정
+  {
+    "nvimdev/indentmini.nvim",
+    event = "BufEnter",
+    config = function()
+      require("indentmini").setup()
+    end,
+  },
 
-   {
-      "ethanholz/nvim-lastplace",
-      event = "BufRead",
-      config = function()
-         require("nvim-lastplace").setup {
-            lastplace_ignore_buftype = { "quickfix", "nofile", "help" },
-            lastplace_ignore_filetype = {
-               "gitcommit",
-               "gitrebase",
-               "svn",
-               "hgcommit",
-            },
-            lastplace_open_folds = true,
-         }
-      end,
-   },
+  {
+    "JoosepAlviste/nvim-ts-context-commentstring",
+    config = function()
+      vim.g.skip_ts_context_commentstring_module = true
+      require("ts_context_commentstring").setup {}
+    end,
+  },
 
-   -- html, css, js live edit
-   {
-      "turbio/bracey.vim",
-      cmd = { "Bracey", "BracyStop", "BraceyReload", "BraceyEval" },
-      build = "npm install --prefix server",
-   },
+  {
+    "nvimtools/none-ls.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    opts = function()
+      return require "configs.null-ls"
+    end,
+  },
 
-   {
-      "kylechui/nvim-surround",
-      version = "*", -- Use for stability; omit to use `main` branch for the latest features
-      event = "VeryLazy",
-      config = function()
-         require("nvim-surround").setup {
-            -- Configuration here, or leave empty to use defaults
-         }
-      end,
-   },
+  { "nvim-lua/plenary.nvim" },
 
-   {
-      "yamatsum/nvim-cursorline",
-      config = function()
-         require("nvim-cursorline").setup {
-            cursorline = {
-               enable = true,
-               number = false,
-            },
-            cursorword = {
-               enable = true,
-               min_length = 3,
-               hl = { underline = true },
-            },
-         }
-      end,
-   },
+  {
+    "Djancyp/better-comments.nvim",
+    lazy = true,
+    init = function()
+      require("better-comment").Setup {
+        tags = {
+          { name = "TODO", fg = "white", bg = "#0a7aca", bold = true, virtual_text = "" },
+          { name = "FIX", fg = "white", bg = "#f44747", bold = true, virtual_text = "!" },
+          { name = "WARNING", fg = "#FFA500", bg = "", bold = false, virtual_text = "" },
+          { name = "!", fg = "#f44747", bg = "", bold = true, virtual_text = "" },
+        },
+      }
+    end,
+  },
+
+  {
+    "heavenshell/vim-jsdoc",
+    ft = { "javascript", "javascript.jsx", "typescript", "typescript.tsx" },
+    build = "make install",
+  },
+
+  { "nvchad/volt", lazy = true },
+  { "nvchad/minty", cmd = { "Shades", "Huefy" } },
+  { "sindrets/diffview.nvim", lazy = false },
+
+  {
+    "NeogitOrg/neogit",
+    dependencies = { "nvim-lua/plenary.nvim", "sindrets/diffview.nvim", "nvim-telescope/telescope.nvim" },
+    lazy = false,
+    config = function()
+      require("neogit").setup {
+        kind = "floating",
+        floating_window = { border = "rounded", width = 0.9, height = 0.85 },
+        integrations = { diffview = true },
+      }
+    end,
+  },
+
+  {
+    "toppair/peek.nvim",
+    event = { "VeryLazy" },
+    build = "deno task --quiet build:fast",
+    config = function()
+      require("peek").setup { app = "browser" }
+      vim.api.nvim_create_user_command("PeekOpen", require("peek").open, {})
+      vim.api.nvim_create_user_command("PeekClose", require("peek").close, {})
+    end,
+  },
+
+  {
+    "ethanholz/nvim-lastplace",
+    event = "BufRead",
+    config = function()
+      require("nvim-lastplace").setup {
+        lastplace_ignore_buftype = { "quickfix", "nofile", "help" },
+        lastplace_ignore_filetype = { "gitcommit", "gitrebase", "svn", "hgcommit" },
+        lastplace_open_folds = true,
+      }
+    end,
+  },
+
+  {
+    "turbio/bracey.vim",
+    cmd = { "Bracey", "BracyStop", "BraceyReload", "BraceyEval" },
+    build = "npm install --prefix server",
+  },
+
+  {
+    "kylechui/nvim-surround",
+    version = "*",
+    event = "VeryLazy",
+    config = function()
+      require("nvim-surround").setup {}
+    end,
+  },
+
+  {
+    "yamatsum/nvim-cursorline",
+    config = function()
+      require("nvim-cursorline").setup {
+        cursorline = { enable = true, number = false },
+        cursorword = { enable = true, min_length = 3, hl = { underline = true } },
+      }
+    end,
+  },
+
+  {
+    "coder/claudecode.nvim",
+    dependencies = { "folke/snacks.nvim" },
+    config = true,
+    -- keys 설정은 기존과 동일하게 유지
+  },
+
+  {
+    "prettier/vim-prettier",
+    build = "npm install --legacy-peer-deps",
+    ft = {
+      "javascript",
+      "typescript",
+      "css",
+      "less",
+      "scss",
+      "json",
+      "graphql",
+      "markdown",
+      "vue",
+      "yaml",
+      "html",
+      "liquid",
+    },
+    config = function()
+      vim.g["prettier#autoformat"] = 0
+      vim.g["prettier#autoformat_require_pragma"] = 0
+    end,
+  },
 }
