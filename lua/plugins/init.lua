@@ -15,8 +15,8 @@ return {
 
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = function(_, opts)
-      opts.ensure_installed = {
+    opts = {
+      ensure_installed = {
         "html",
         "css",
         "bash",
@@ -34,11 +34,12 @@ return {
         "gomod",
         "scss",
         "liquid",
-      }
-      opts.auto_install = true
+      },
+
+      auto_install = true,
 
       -- highlight 설정 추가
-      opts.highlight = {
+      highlight = {
         enable = true,
         disable = function(lang, buf)
           local filename = vim.api.nvim_buf_get_name(buf)
@@ -61,15 +62,14 @@ return {
           end
         end,
         additional_vim_regex_highlighting = false,
-      }
-    end,
+      },
+    },
   },
 
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
     dependencies = { "nvim-treesitter/nvim-treesitter" },
-    config = function()
-    end,
+    config = function() end,
   },
 
   { "tpope/vim-fugitive", lazy = false },
