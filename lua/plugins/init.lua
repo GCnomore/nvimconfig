@@ -43,21 +43,39 @@ return {
         enable = true,
         disable = function(lang, buf)
           local filename = vim.api.nvim_buf_get_name(buf)
+
+          -- 1. 파일명이 없으면 하이라이트 켬 (보통 임시 버퍼)
           if filename == "" then
             return false
           end
+
+          -- 2. 파일 크기가 너무 크면 끔 (1MB 기준)
           local max_filesize = 1000 * 1024 -- 1MB
           local ok, stats = pcall(vim.loop.fs_stat, filename)
           if ok and stats and stats.size > max_filesize then
             return true
           end
+
+          -- 3. 확장자가 .min.js 등이면 끔
           if filename:match "%.min%.js$" or filename:match "%.min%.css$" or filename:match "%.min%.html$" then
             return true
           end
+
+          -- 4. [수정됨] 파일 내용 기반 체크 (첫 100줄만 검사)
           local lines = vim.fn.readfile(filename, "", 100)
           for _, line in ipairs(lines) do
-            if #line > 500 then
+            -- (1) 줄 자체가 비정상적으로 길면 끔 (Minified 파일은 보통 한 줄이 10,000자 넘음)
+            -- 500은 너무 짧으니 10,000 정도로 설정
+            if #line > 10000 then
               return true
+            end
+
+            -- (2) [요청하신 기능] 공백 없이 1,000자 이상 이어진 문자열이 있으면 끔
+            -- (Base64 이미지나 거대한 토큰이 포함된 경우)
+            for word in line:gmatch "%S+" do
+              if #word > 1000 then
+                return true
+              end
             end
           end
         end,
