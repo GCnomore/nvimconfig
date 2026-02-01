@@ -11,9 +11,13 @@ map("n", "<leader>lf", function()
 end, {
    desc = "Floating diagnostic",
 })
-
 map("n", "j", "gj")
 map("n", "k", "gk")
+
+-- Diffview
+map("n", "<leader>do", "<cmd>DiffviewOpen<cr>", { desc = "Diffview Open" })
+map("n", "<leader>dc", "<cmd>DiffviewClose<cr>", { desc = "Diffview Close" })
+map("n", "<leader>df", "<cmd>DiffviewFileHistory %<cr>", { desc = "Diffview File History" })
 
 -- Neogit Mapping
 map("n", "<leader>gg", ":Neogit<CR>", { desc = "Open Neogit" })
