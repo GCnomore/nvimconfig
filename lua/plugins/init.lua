@@ -1,12 +1,17 @@
 return {
   {
     "stevearc/conform.nvim",
-    opts = require "configs.conform",
+    -- 예전 스타일: opts 대신 config 함수 내부에서 require
+    config = function()
+      require "configs.conform"
+    end,
   },
 
   {
     "neovim/nvim-lspconfig",
     config = function()
+      -- 예전 스타일: NvChad defaults 불러오기
+      require("nvchad.configs.lspconfig").defaults()
       require "configs.lspconfig"
     end,
   },
@@ -35,43 +40,31 @@ return {
         "scss",
         "liquid",
       },
-
       auto_install = true,
-
-      -- highlight 설정 추가
+      -- 내용은 현재의 개선된 하이라이트 로직 유지
       highlight = {
         enable = true,
         disable = function(lang, buf)
           local filename = vim.api.nvim_buf_get_name(buf)
-
-          -- 1. 파일명이 없으면 하이라이트 켬 (보통 임시 버퍼)
           if filename == "" then
             return false
           end
 
-          -- 2. 파일 크기가 너무 크면 끔 (1MB 기준)
-          local max_filesize = 1000 * 1024 -- 1MB
+          local max_filesize = 1000 * 1024
           local ok, stats = pcall(vim.loop.fs_stat, filename)
           if ok and stats and stats.size > max_filesize then
             return true
           end
 
-          -- 3. 확장자가 .min.js 등이면 끔
           if filename:match "%.min%.js$" or filename:match "%.min%.css$" or filename:match "%.min%.html$" then
             return true
           end
 
-          -- 4. [수정됨] 파일 내용 기반 체크 (첫 100줄만 검사)
           local lines = vim.fn.readfile(filename, "", 100)
           for _, line in ipairs(lines) do
-            -- (1) 줄 자체가 비정상적으로 길면 끔 (Minified 파일은 보통 한 줄이 10,000자 넘음)
-            -- 500은 너무 짧으니 10,000 정도로 설정
             if #line > 10000 then
               return true
             end
-
-            -- (2) [요청하신 기능] 공백 없이 1,000자 이상 이어진 문자열이 있으면 끔
-            -- (Base64 이미지나 거대한 토큰이 포함된 경우)
             for word in line:gmatch "%S+" do
               if #word > 1000 then
                 return true
@@ -94,23 +87,37 @@ return {
 
   {
     "windwp/nvim-ts-autotag",
-    config = function()
-      require("nvim-ts-autotag").setup()
+    -- 예전 스타일: config 대신 init 사용
+    init = function()
+      require("nvim-ts-autotag").setup {
+        opts = {
+          enable_close = true,
+          enable_rename = true,
+          enable_close_on_slash = true,
+        },
+        per_filetype = {
+          ["liquid"] = {
+            enable_close = true,
+            enable_rename = true,
+            enable_close_on_slash = true,
+          },
+        },
+      }
     end,
   },
 
   {
     "windwp/nvim-autopairs",
-    config = function()
+    -- 예전 스타일: config 대신 init 사용
+    init = function()
       require("nvim-autopairs").setup()
     end,
   },
 
-  -- 🛠️ 수정된 부분: indentmini 설정
   {
     "nvimdev/indentmini.nvim",
-    event = "BufEnter",
-    config = function()
+    -- 예전 스타일: config 대신 init 사용
+    init = function()
       require("indentmini").setup()
     end,
   },
@@ -126,6 +133,10 @@ return {
   {
     "nvimtools/none-ls.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
+    -- 예전 스타일: init에서 setup 호출 추가
+    init = function()
+      require("null-ls").setup {}
+    end,
     opts = function()
       return require "configs.null-ls"
     end,
@@ -223,7 +234,25 @@ return {
     "coder/claudecode.nvim",
     dependencies = { "folke/snacks.nvim" },
     config = true,
-    -- keys 설정은 기존과 동일하게 유지
+    keys = {
+      { "<leader>a", nil, desc = "AI/Claude Code" },
+      { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
+      { "<leader>af", "<cmd>ClaudeCodeFocus<cr>", desc = "Focus Claude" },
+      { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Resume Claude" },
+      { "<leader>aC", "<cmd>ClaudeCode --continue<cr>", desc = "Continue Claude" },
+      { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>", desc = "Select Claude model" },
+      { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>", desc = "Add current buffer" },
+      { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Send to Claude" },
+      {
+        "<leader>as",
+        "<cmd>ClaudeCodeTreeAdd<cr>",
+        desc = "Add file",
+        ft = { "NvimTree", "neo-tree", "oil", "minifiles", "netrw" },
+      },
+      -- Diff management
+      { "<leader>aa", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
+      { "<leader>ad", "<cmd>ClaudeCodeDiffDeny<cr>", desc = "Deny diff" },
+    },
   },
 
   {
